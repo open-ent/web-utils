@@ -202,6 +202,12 @@ public class DefaultOAuthResourceProviderTest {
     public MultiMap params() {
             throw new UnsupportedOperationException("Unimplemented method 'params'");
     }
+
+//    @Override
+//    public MultiMap params(boolean b) {
+//      throw new UnsupportedOperationException("Unimplemented method 'params'");
+//    }
+
     @Override
     public String path() {
             throw new UnsupportedOperationException("Unimplemented method 'path'");

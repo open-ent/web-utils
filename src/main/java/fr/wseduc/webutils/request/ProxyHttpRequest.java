@@ -144,6 +144,11 @@ public class ProxyHttpRequest implements HttpServerRequest {
         return original.params();
     }
 
+//    @Override
+//    public MultiMap params(boolean b) {
+//        return original.params();
+//    }
+
     @Override
     
     public String getParam(String paramName) {

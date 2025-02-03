@@ -187,6 +187,11 @@ public class SecureHttpServerRequest implements HttpServerRequest, HttpServerReq
 		return request.params();
 	}
 
+//	@Override
+//	public MultiMap params(boolean b) {
+//		return request.params();
+//	}
+
 	@Override
 	public String getParam(String paramName) {
 		return request.getParam(paramName);

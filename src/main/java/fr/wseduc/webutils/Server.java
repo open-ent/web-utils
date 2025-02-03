@@ -231,7 +231,10 @@ public abstract class Server extends AbstractVerticle {
 	}
 
 	protected Server addController(BaseController controller) {
-		log.info("add controller");
+		if (config.getString("path-prefix") == null) {
+			log.warn("add controller for a module with a 'path-prefix' not defined : " + config.getString("app-name"));
+		}
+		log.info("add controller for " + config.getString("path-prefix"));
 		controller.init(vertx, config, rm, securedActions);
 		securedUriBinding.addAll(controller.securedUriBinding());
 		mfaProtectedBinding.addAll(controller.getMfaProtectedBindings());
