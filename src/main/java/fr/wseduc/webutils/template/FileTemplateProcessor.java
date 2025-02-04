@@ -42,21 +42,23 @@ import static fr.wseduc.webutils.data.FileResolver.absolutePath;
 public class FileTemplateProcessor extends TemplateProcessor
 {
   private Vertx vertx;
+  private String module;
   private String templateFolder;
 
   private final ConcurrentMap<String, Template> cache = new ConcurrentHashMap<String, Template>();
   private boolean useCache = false;
 
-  public FileTemplateProcessor(Vertx vertx, String templateFolder)
+  public FileTemplateProcessor(Vertx vertx, String module, String templateFolder)
   {
     super();
     this.vertx = vertx;
+    this.module = module;
     this.templateFolder = templateFolder.endsWith("/") ? templateFolder : templateFolder + "/";
   }
 
-  public FileTemplateProcessor(Vertx vertx, String templateFolder, boolean useCache)
+  public FileTemplateProcessor(Vertx vertx, String module, String templateFolder, boolean useCache)
   {
-    this(vertx, templateFolder);
+    this(vertx, module, templateFolder);
     this.enableCache(useCache);
   }
 
@@ -87,7 +89,7 @@ public class FileTemplateProcessor extends TemplateProcessor
   {
     String path = this.templateFolder + resourceName;
 
-    final String p = absolutePath(path);
+    final String p = absolutePath(module, path);
     if (this.useCache == true)
     {
       Template cacheEntry = cache.get(p);

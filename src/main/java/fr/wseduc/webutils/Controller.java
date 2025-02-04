@@ -20,6 +20,9 @@ import java.io.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -87,11 +90,17 @@ public abstract class Controller extends Renders {
 	}
 
 	protected void loadRoutes() {
-		InputStream is = this.getClass().getClassLoader().getResourceAsStream("routes" + File.separator +
-				this.getClass().getName() + ".json");
-		if (is != null) {
+		String vertxServicesPath = System.getProperty("vertx.services.path", "/open-ent/data/mods");
+		Path routePath = Paths.get(vertxServicesPath, config.getString("main") + File.separator + "routes" + File.separator + this.getClass().getName() + ".json");
+		if (Files.exists(routePath)) {
+			try (InputStream is = Files.newInputStream(routePath)) {
+
+
+//		InputStream is = this.getClass().getClassLoader().getResourceAsStream("routes" + File.separator +
+//				this.getClass().getName() + ".json");
+//		if (is != null) {
 			BufferedReader r = null;
-			try {
+//			try {
 				r = new BufferedReader(new InputStreamReader(is, "UTF-8"));
 				String line;
 				while((line = r.readLine()) != null) {
@@ -144,15 +153,16 @@ public abstract class Controller extends Renders {
 				}
 			} catch (IOException | NoSuchMethodException | IllegalAccessException e) {
 				log.error("Unable to load routes in controller " + this.getClass().getName(), e);
-			} finally {
-				if (r != null) {
-					try {
-						r.close();
-					} catch (IOException e) {
-						log.error("Close inputstream error", e);
-					}
-				}
 			}
+//			finally {
+//				if (r != null) {
+//					try {
+//						r.close();
+//					} catch (IOException e) {
+//						log.error("Close inputstream error", e);
+//					}
+//				}
+//			}
 		} else {
 			log.warn("Not found routes file to controller " + this.getClass().getName());
 		}

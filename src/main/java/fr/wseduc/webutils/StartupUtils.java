@@ -45,9 +45,9 @@ public class StartupUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(StartupUtils.class);
 
-	public static void sendStartup(final JsonObject app, JsonArray actions, final Vertx vertx, Integer appRegistryPort) throws IOException {
+	public static void sendStartup(final JsonObject app, JsonArray actions, final Vertx vertx, JsonObject config, Integer appRegistryPort) throws IOException {
 		if (actions == null || actions.size() == 0) {
-			actions = loadSecuredActions(vertx);
+			actions = loadSecuredActions(vertx, config);
 		}
 		final String s = new JsonObject().put("application", app).put("actions", actions).encode();
 		final HttpClient httpClient = vertx.createHttpClient(new HttpClientOptions()
@@ -85,9 +85,9 @@ public class StartupUtils {
 	}
 
 	public static void sendStartup(final JsonObject app, JsonArray actions, final EventBus eb, final String address, final Vertx vertx,
-			final Handler<AsyncResult<Message<JsonObject>>> handler) throws IOException {
+			JsonObject config, final Handler<AsyncResult<Message<JsonObject>>> handler) throws IOException {
 		if (actions == null || actions.size() == 0) {
-			actions = loadSecuredActions(vertx);
+			actions = loadSecuredActions(vertx, config);
 		}
 		JsonObject jo = new JsonObject();
 		jo.put("application", app)
@@ -117,21 +117,21 @@ public class StartupUtils {
 		});
 	}
 
-	public static void sendStartup(JsonObject app, JsonArray actions, EventBus eb, String address, Vertx vertx) throws IOException {
-		sendStartup(app, actions, eb, address, vertx, null);
+	public static void sendStartup(JsonObject app, JsonArray actions, EventBus eb, String address, Vertx vertx, JsonObject config) throws IOException {
+		sendStartup(app, actions, eb, address, vertx, config, null);
 	}
 
-	public static void sendStartup(JsonObject app, EventBus eb, String address, Vertx vertx,
+	public static void sendStartup(JsonObject app, EventBus eb, String address, Vertx vertx, JsonObject config,
 			final Handler<AsyncResult<Message<JsonObject>>> handler) throws IOException {
-		sendStartup(app, null, eb, address, vertx, handler);
+		sendStartup(app, null, eb, address, vertx, config, handler);
 	}
 
-	public static void sendStartup(JsonObject app, EventBus eb, String address) throws IOException {
-		sendStartup(app, null, eb, address, null);
+	public static void sendStartup(JsonObject app, EventBus eb, JsonObject config, String address) throws IOException {
+		sendStartup(app, null, eb, address, null, config);
 	}
 
-	public static JsonArray loadSecuredActions(Vertx vertx) throws IOException {
-		List<String> list = vertx.fileSystem().readDirBlocking(absolutePath("securedaction"), "^SecuredAction-.*json$");
+	public static JsonArray loadSecuredActions(Vertx vertx, JsonObject config) throws IOException {
+		List<String> list = vertx.fileSystem().readDirBlocking(absolutePath(config.getString("main"), "securedaction"), "^SecuredAction-.*json$");
 		JsonArray securedActions = new JsonArray();
 		for (String f : list) {
 			BufferedReader in = null;

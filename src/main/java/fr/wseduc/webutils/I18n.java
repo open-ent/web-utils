@@ -35,7 +35,7 @@ import io.vertx.core.logging.LoggerFactory;
 public class I18n {
 
 	private static final Logger log = LoggerFactory.getLogger(I18n.class);
-	private final static String messagesDir = FileResolver.absolutePath("i18n");
+
 	private final static Locale defaultLocale = Locale.ENGLISH;
 	private final static Locale defaultLocale2 = Locale.FRENCH;
 	public final static String DEFAULT_DOMAIN = "default-domain";
@@ -52,8 +52,9 @@ public class I18n {
 		return I18nHolder.instance;
 	}
 
-	public void init(Vertx vertx) {
+	public void init(Vertx vertx, JsonObject config) {
 		try {
+			String messagesDir = FileResolver.absolutePath(config.getString("main"), "i18n");
 			if (vertx.fileSystem().existsBlocking(messagesDir)) {
 				Map<Locale, JsonObject> messages = messagesByDomains.get(DEFAULT_DOMAIN);
 				if (messages == null) {

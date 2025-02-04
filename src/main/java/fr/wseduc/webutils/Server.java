@@ -65,11 +65,11 @@ public abstract class Server extends AbstractVerticle {
 	public void start(Promise<Void> startPromise) throws Exception {
 		super.start(startPromise);
 		config = config();
-		FileResolver.getInstance().setBasePath(config);
+		FileResolver.getInstance().setBasePath(config.getString("main"), config);
 		rm = new RouteMatcher();
 		trace = TracerFactory.getTracer(this.getClass().getSimpleName());
 		i18n = I18n.getInstance();
-		i18n.init(vertx);
+		i18n.init(vertx, config);
 		CookieHelper.getInstance().init((String) vertx
 				.sharedData().getLocalMap("server").get("signKey"),
 				(String) vertx.sharedData().getLocalMap("server").get("sameSiteValue"), log);
@@ -82,7 +82,7 @@ public abstract class Server extends AbstractVerticle {
 
 		// Serve public static resource like img, css, js. By convention in /public directory
 		rm.getWithRegEx(prefix.replaceAll("\\/", "\\/") + "\\/public\\/.+", request -> {
-			final String path = absolutePath(request.path().substring(prefix.length() + 1));
+			final String path = absolutePath(config.getString("main"), request.path().substring(prefix.length() + 1));
 			if (dev) {
 				request.response().sendFile(path, ar -> {
 					if (ar.failed() && !request.response().ended()) {
@@ -146,16 +146,16 @@ public abstract class Server extends AbstractVerticle {
 			if (customProperties != null) {
 				application.mergeIn(customProperties);
 			}
-			JsonArray actions = StartupUtils.loadSecuredActions(vertx);
+			JsonArray actions = StartupUtils.loadSecuredActions(vertx, config);
 			securedActions = StartupUtils.securedActionsToMap(actions);
 			log.info("secureaction loaded : " + actions.encode());
 			if (config.getString("integration-mode","BUS").equals("HTTP")) {
-				StartupUtils.sendStartup(application, actions, vertx,
+				StartupUtils.sendStartup(application, actions, vertx, config,
 						config.getInteger("app-registry.port", 8012));
 			} else {
 				StartupUtils.sendStartup(application, actions,
 						Server.getEventBus(vertx),
-						config.getString("app-registry.address", "wse.app.registry"), vertx);
+						config.getString("app-registry.address", "wse.app.registry"), vertx, config);
 			}
 		} catch (IOException e) {
 			log.error("Error application not registred.", e);

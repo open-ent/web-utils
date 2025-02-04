@@ -46,7 +46,7 @@ public abstract class BusModBase extends AbstractVerticle {
 	public void start() {
 		eb = vertx.eventBus();
 		config = config();
-		FileResolver.getInstance().setBasePath(config);
+		FileResolver.getInstance().setBasePath(config.getString("main"), config);
 	}
 
 	protected void sendOK(Message<JsonObject> message) {

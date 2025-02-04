@@ -65,7 +65,7 @@ public class Renders {
 		}
 		this.vertx = vertx;
 		if (vertx != null) {
-			this.templateProcessor = new FileTemplateProcessor(vertx, "view/", false);
+			this.templateProcessor = new FileTemplateProcessor(vertx, config.getString("main"), "view/", false);
 			this.templateProcessor.setLambda("formatBirthDate", new FormatBirthDateLambda());
 			this.templateProcessor.setLambda("modVersion", new ModsLambda(vertx));
 		}
@@ -83,7 +83,7 @@ public class Renders {
 		this.staticHost = (String) server.get("static-host");
 
 		if (templateProcessor == null && vertx != null) {
-			this.templateProcessor = new FileTemplateProcessor(vertx, "view/", false);
+			this.templateProcessor = new FileTemplateProcessor(vertx, config.getString("main"), "view/", false);
 			this.templateProcessor.setLambda("formatBirthDate", new FormatBirthDateLambda());
 			this.templateProcessor.setLambda("modVersion", new ModsLambda(vertx));
 		}

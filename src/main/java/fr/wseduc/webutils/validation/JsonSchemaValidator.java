@@ -35,7 +35,7 @@ import java.util.List;
 
 public class JsonSchemaValidator {
 
-	private static final String JSONSCHEMA_PATH = FileResolver.absolutePath("jsonschema");
+
 	private String address;
 	private EventBus eb;
 	private static final Logger log = LoggerFactory.getLogger(JsonSchemaValidator.class);
@@ -58,7 +58,8 @@ public class JsonSchemaValidator {
 		this.eb = eb;
 	}
 
-	public void loadJsonSchema(final String keyPrefix, Vertx vertx) {
+	public void loadJsonSchema(final String keyPrefix, Vertx vertx, JsonObject config) {
+		String JSONSCHEMA_PATH = FileResolver.absolutePath(config.getString("main"), "jsonschema");
 		final FileSystem fs = vertx.fileSystem();
 		fs.exists(JSONSCHEMA_PATH, new Handler<AsyncResult<Boolean>>() {
 			@Override
