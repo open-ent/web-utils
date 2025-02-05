@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import fr.wseduc.webutils.data.FileResolver;
 import fr.wseduc.webutils.http.Renders;
@@ -39,19 +40,26 @@ public class I18n {
 	private final static Locale defaultLocale = Locale.ENGLISH;
 	private final static Locale defaultLocale2 = Locale.FRENCH;
 	public final static String DEFAULT_DOMAIN = "default-domain";
+
+	// Map pour stocker les instances de I18n par module
+	private static final ConcurrentHashMap<String, I18n> instancesByModule = new ConcurrentHashMap<>();
+
 	private Map<String, Map<Locale, JsonObject>> messagesByDomains = new HashMap<>();
 	private Map<String, Map<Locale, JsonObject>> messagesByThemes = new HashMap<>();
 
-	private I18n(){}
+	private I18n() {}
 
-	private static class I18nHolder {
-		private static final I18n instance = new I18n();
+	/**
+	 * Récupère une instance de I18n pour un module spécifique.
+	 * Si l'instance n'existe pas, elle est créée et stockée.
+	 */
+	public static I18n getInstance(String module) {
+		return instancesByModule.computeIfAbsent(module, k -> new I18n());
 	}
 
-	public static I18n getInstance() {
-		return I18nHolder.instance;
-	}
-
+	/**
+	 * Initialise l'instance I18n pour un module spécifique.
+	 */
 	public void init(Vertx vertx, JsonObject config) {
 		try {
 			String messagesDir = FileResolver.absolutePath(config.getString("main"), "i18n");
@@ -61,11 +69,11 @@ public class I18n {
 					messages = new HashMap<>();
 					messagesByDomains.put(DEFAULT_DOMAIN, messages);
 				}
-				for(String path : vertx.fileSystem().readDirBlocking(messagesDir)) {
+				for (String path : vertx.fileSystem().readDirBlocking(messagesDir)) {
 					if (vertx.fileSystem().propsBlocking(path).isRegularFile()) {
 						Locale l = Locale.forLanguageTag(new File(path).getName().split("\\.")[0]);
 						JsonObject jo = new JsonObject(vertx.fileSystem().readFileBlocking(path).toString());
-						messages.put(l,jo);
+						messages.put(l, jo);
 					}
 				}
 			} else {
@@ -76,6 +84,7 @@ public class I18n {
 		}
 	}
 
+	// Les autres méthodes restent inchangées...
 	public String translate(String key, String domain, String acceptLanguage, String... args) {
 		return translate(key, domain, getLocale(acceptLanguage), args);
 	}
@@ -88,10 +97,10 @@ public class I18n {
 	public String translate(String key, String domain, Locale locale, String... args) {
 		return translate(key, domain, null, locale, args);
 	}
-		
+
 	public String translate(String key, String domain, String theme, Locale locale, String... args) {
 		if (key == null) return "";
-		Map<Locale, JsonObject> messages = getMessagesMap(theme != null ? theme : domain, theme != null); // Theme gets precedence over domain, domain is a fallback
+		Map<Locale, JsonObject> messages = getMessagesMap(theme != null ? theme : domain, theme != null);
 
 		if (messages == null) {
 			return theme != null ? translate(key, domain, null, locale, args) : key;
@@ -101,8 +110,7 @@ public class I18n {
 			return theme != null ? translate(key, domain, null, locale, args) : key;
 		}
 		String text = bundle.getString(key);
-		if(text != null)
-		{
+		if (text != null) {
 			if (args.length > 0) {
 				try {
 					for (int i = 0; i < args.length; i++) {
@@ -112,9 +120,9 @@ public class I18n {
 					log.error("Error replacing i18n variable", e);
 				}
 			}
-		}
-		else
+		} else {
 			text = theme != null ? translate(key, domain, null, locale, args) : key;
+		}
 		return text;
 	}
 
@@ -130,6 +138,7 @@ public class I18n {
 		}
 		return messages;
 	}
+
 
 	@Deprecated
 	public JsonObject load(String acceptLanguage) {

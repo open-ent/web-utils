@@ -36,19 +36,19 @@ public class I18nLambda implements Mustache.Lambda
   private final Locale locale;
   private final String theme;
 
-  public I18nLambda(String locale)
+  public I18nLambda(String module, String locale)
   {
-    this(locale, null);
+    this(module, locale, null);
   }
 
-  public I18nLambda(String locale, String host)
+  public I18nLambda(String module, String locale, String host)
   {
-    this(locale, host, null);
+    this(module, locale, host, null);
   }
 
-  public I18nLambda(String locale, String host, String theme)
+  public I18nLambda(String module, String locale, String host, String theme)
   {
-    this.i18n = I18n.getInstance();
+    this.i18n = I18n.getInstance(module);
     this.host = host;
     this.locale = I18n.getLocale(locale != null ? locale : "fr");
     this.theme = theme;

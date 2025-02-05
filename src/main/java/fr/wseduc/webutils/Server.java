@@ -68,7 +68,7 @@ public abstract class Server extends AbstractVerticle {
 		FileResolver.getInstance().setBasePath(config.getString("main"), config);
 		rm = new RouteMatcher();
 		trace = TracerFactory.getTracer(this.getClass().getSimpleName());
-		i18n = I18n.getInstance();
+		i18n = I18n.getInstance(config.getString("main"));
 		i18n.init(vertx, config);
 		CookieHelper.getInstance().init((String) vertx
 				.sharedData().getLocalMap("server").get("signKey"),

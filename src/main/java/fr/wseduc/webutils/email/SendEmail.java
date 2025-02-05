@@ -31,39 +31,39 @@ public interface SendEmail {
 
 	String getHost(HttpServerRequest request);
 
-	void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 						  String subject, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 				   String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 						  String subject, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 						  String subject, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 				   String subject, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 				   String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, List<Object> to, List<Object> cc, List<Object> bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, List<Object> cc, List<Object> bcc,
 						  String subject, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
 				   String subject, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler);
 
-	void sendEmail(HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
+	void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
 				   String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler);
 

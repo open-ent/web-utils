@@ -58,42 +58,42 @@ public abstract class NotificationHelper implements SendEmail {
 		this.host = config.getString("host", defaultHost);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 			String subject, String templateBody, JsonObject templateParams,
 			boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, senderEmail, cc, bcc, subject, templateBody,
+		sendEmail(config, request, to, senderEmail, cc, bcc, subject, templateBody,
 				templateParams, translateSubject, null, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 				   String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, senderEmail, cc, bcc, subject, attachments, templateBody,
+		sendEmail(config, request, to, senderEmail, cc, bcc, subject, attachments, templateBody,
 				templateParams, translateSubject, null, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String cc, String bcc,
 			String subject, String templateBody, JsonObject templateParams,
 			boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, senderEmail, cc, bcc, subject, templateBody,
+		sendEmail(config, request, to, senderEmail, cc, bcc, subject, templateBody,
 				templateParams, translateSubject, headers, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 			String subject, String templateBody, JsonObject templateParams,
 			boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, from, cc, bcc, subject, templateBody,
+		sendEmail(config, request, to, from, cc, bcc, subject, templateBody,
 				templateParams, translateSubject, null, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 			String subject, String templateBody, JsonObject templateParams,
 			boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, senderEmail, cc, bcc, subject, null, templateBody,
+		sendEmail(config, request, to, senderEmail, cc, bcc, subject, null, templateBody,
 				templateParams, translateSubject, headers, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, String to, String from, String cc, String bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, String to, String from, String cc, String bcc,
 				   String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 				   boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler) {
 		ArrayList<Object> toList = null;
@@ -113,25 +113,25 @@ public abstract class NotificationHelper implements SendEmail {
 			bccList.add(bcc);
 		}
 
-		sendEmail(request, toList, senderEmail, ccList, bccList, subject, attachments, templateBody,
+		sendEmail(config, request, toList, senderEmail, ccList, bccList, subject, attachments, templateBody,
 				templateParams, translateSubject, headers, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, List<Object> to, List<Object> cc, List<Object> bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, List<Object> cc, List<Object> bcc,
 			String subject, String templateBody, JsonObject templateParams,
 			boolean translateSubject, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, senderEmail, cc, bcc, subject, templateBody,
+		sendEmail(config, request, to, senderEmail, cc, bcc, subject, templateBody,
 				templateParams, translateSubject, null, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
 						  String subject, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler) {
-		sendEmail(request, to, from, cc, bcc, subject, null, templateBody,
+		sendEmail(config, request, to, from, cc, bcc, subject, null, templateBody,
 				templateParams, translateSubject, headers, handler);
 	}
 
-	public void sendEmail(HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
+	public void sendEmail(JsonObject config, HttpServerRequest request, List<Object> to, String from, List<Object> cc, List<Object> bcc,
 						  String subject, JsonArray attachments, String templateBody, JsonObject templateParams,
 						  boolean translateSubject, JsonArray headers, final Handler<AsyncResult<Message<JsonObject>>> handler) {
 		final JsonObject json = new JsonObject()
@@ -157,7 +157,7 @@ public abstract class NotificationHelper implements SendEmail {
 		}
 
 		if (translateSubject) {
-			json.put("subject", I18n.getInstance().translate(
+			json.put("subject", I18n.getInstance(config.getString("main")).translate(
 					subject, getHost(request), I18n.acceptLanguage(request)));
 		} else {
 			json.put("subject", subject);

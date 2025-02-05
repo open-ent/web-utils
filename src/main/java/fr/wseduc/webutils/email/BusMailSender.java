@@ -29,27 +29,27 @@ import java.io.UnsupportedEncodingException;
 
 public class BusMailSender extends NotificationHelper {
 
-	protected String emailAddress;
-	private final EventBus eb;
+    private final EventBus eb;
+    protected String emailAddress;
 
-	protected BusMailSender(Vertx vertx, JsonObject config) {
-		this(vertx, config, null);
-	}
+    protected BusMailSender(Vertx vertx, JsonObject config) {
+        this(vertx, config, null);
+    }
 
-	public BusMailSender(Vertx vertx, JsonObject config, String emailAddress) {
-		super(vertx, config);
-		this.eb = vertx.eventBus();
-		this.emailAddress = emailAddress;
-	}
+    public BusMailSender(Vertx vertx, JsonObject config, String emailAddress) {
+        super(vertx, config);
+        this.eb = vertx.eventBus();
+        this.emailAddress = emailAddress;
+    }
 
-	protected void sendEmail(JsonObject json, Handler<AsyncResult<Message<JsonObject>>> handler) {
-		try {
-			json.put("body", new String(json.getString("body").getBytes("UTF-8"), "ISO-8859-1"));
-			eb.request(emailAddress, json, handler);
-		} catch (UnsupportedEncodingException e) {
-			log.error(e.getMessage(), e);
-			handler.handle(new DefaultAsyncResult<>(e));
-		}
-	}
+    protected void sendEmail(JsonObject json, Handler<AsyncResult<Message<JsonObject>>> handler) {
+        try {
+            json.put("body", new String(json.getString("body").getBytes("UTF-8"), "ISO-8859-1"));
+            eb.request(emailAddress, json, handler);
+        } catch (UnsupportedEncodingException e) {
+            log.error(e.getMessage(), e);
+            handler.handle(new DefaultAsyncResult<>(e));
+        }
+    }
 
 }
