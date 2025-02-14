@@ -96,7 +96,7 @@ public class Renders {
 			host = "";
 		String sttcHost = this.staticHost != null ? this.staticHost : host;
 		this.templateProcessor.setLambda("i18n",
-			new I18nLambda(I18n.acceptLanguage(request), host, I18n.getTheme(request)));
+			new I18nLambda(config.getString("main"), I18n.acceptLanguage(request), host, I18n.getTheme(request)));
 		this.templateProcessor.setLambda("static",
 			new StaticLambda(config.getBoolean("ssl", sttcHost.startsWith("https")), sttcHost, this.pathPrefix + "/public"));
 		this.templateProcessor.setLambda("infra",
