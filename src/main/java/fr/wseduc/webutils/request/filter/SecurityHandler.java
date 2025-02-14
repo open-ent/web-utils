@@ -1,19 +1,3 @@
-/*
- * Copyright © WebServices pour l'Éducation, 2014
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package fr.wseduc.webutils.request.filter;
 
 import java.util.ArrayList;
@@ -27,45 +11,45 @@ import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import fr.wseduc.webutils.security.SecureHttpServerRequest;
+
 /*
- * Implement a Security Handler with a pre-configurate filters chain 
+ * Implement a Security Handler with a per-verticle filters chain
  */
-public abstract class SecurityHandler implements Handler<HttpServerRequest> {
-	private static Logger logger = LoggerFactory.getLogger(SecurityHandler.class);
-	static protected List<Filter> chain = new ArrayList<>();
-	static {
+public class SecurityHandler implements Handler<HttpServerRequest> {
+	private static final Logger logger = LoggerFactory.getLogger(SecurityHandler.class);
+
+	// Plus de static : chaque instance de SecurityHandler a son propre filtre
+	private final List<Filter> chain = new ArrayList<>();
+
+	// Chaque instance peut recevoir son propre Vert.x si nécessaire
+	private final Vertx vertx;
+
+	public SecurityHandler(Vertx vertx) {
+		this.vertx = vertx;
 		chain.add(new AccessLoggerFilter(new AccessLogger()));
 		chain.add(new UserAuthFilter());
 	}
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Handler<Boolean> chainToHandler(final HttpServerRequest request) {
-		final Handler [] handlers = new Handler[chain.size()];
+		final Handler[] handlers = new Handler[chain.size()];
 		request.pause();
-		handlers[chain.size() - 1] = new Handler<Boolean>() {
-
-			@Override
-			public void handle(Boolean access) {
-				if (Boolean.TRUE.equals(access)) {
-					request.resume();
-					filter(request);
-				} else {
-					chain.get(chain.size() - 1).deny(request);
-				}
+		handlers[chain.size() - 1] = access -> {
+			if (Boolean.TRUE.equals(access)) {
+				request.resume();
+				filter(request);
+			} else {
+				chain.get(chain.size() - 1).deny(request);
 			}
 		};
 		for (int i = chain.size() - 2; i >= 0; i--) {
 			final int idx = i;
 
-			handlers[i] = new Handler<Boolean>() {
-
-				@Override
-				public void handle(Boolean access) {
-					if (Boolean.TRUE.equals(access)) {
-						chain.get(idx + 1).canAccess(request, handlers[idx + 1]);
-					} else {
-						chain.get(idx).deny(request);
-					}
+			handlers[i] = access -> {
+				if (Boolean.TRUE.equals(access)) {
+					chain.get(idx + 1).canAccess(request, handlers[idx + 1]);
+				} else {
+					chain.get(idx).deny(request);
 				}
 			};
 		}
@@ -75,7 +59,7 @@ public abstract class SecurityHandler implements Handler<HttpServerRequest> {
 
 	@Override
 	public void handle(HttpServerRequest request) {
-		if (chain != null && !chain.isEmpty()) {
+		if (!chain.isEmpty()) {
 			SecureHttpServerRequest sr = new XssSecuredHttpServerRequest(request);
 			chain.get(0).canAccess(sr, chainToHandler(sr));
 		} else {
@@ -83,31 +67,32 @@ public abstract class SecurityHandler implements Handler<HttpServerRequest> {
 		}
 	}
 
-	public static synchronized void addFilter(Filter filter) {
-		//add only once in case of multiple verticle instance
-		for(final Filter f : chain){
-			if(f.getClass().equals(filter.getClass())){
-				logger.warn("The filter has already bean added: "+filter.getClass());
+	public void addFilter(Filter filter) {
+		// add only once in case of multiple instances per verticle
+		for (final Filter f : chain) {
+			if (f.getClass().equals(filter.getClass())) {
+				logger.warn("The filter has already been added: " + filter.getClass());
 				return;
 			}
 		}
 		chain.add(filter);
 	}
 
-	public static synchronized void clearFilters() {
-		//synchronized in case of different event loop per verticle
+	public void clearFilters() {
 		chain.clear();
 	}
 
-	public static void setVertx(Vertx vertx) {
-		if (chain != null) {
-			for (Filter f : chain) {
-				if (f instanceof WithVertx) {
-					((WithVertx) f).setVertx(vertx);
-				}
+	public void setVertx() {
+		for (Filter f : chain) {
+			if (f instanceof WithVertx) {
+				((WithVertx) f).setVertx(vertx);
 			}
 		}
 	}
 
-	public abstract void filter(HttpServerRequest request);
+	public void filter(HttpServerRequest request) {
+		// Implémentation par défaut, peut être surchargée
+		logger.info("Request passed through SecurityHandler: " + request.uri());
+
+	}
 }

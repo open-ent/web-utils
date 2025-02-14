@@ -48,6 +48,9 @@ import fr.wseduc.webutils.security.ActionType;
 import fr.wseduc.webutils.security.SecuredAction;
 import org.vertx.java.core.http.RouteMatcher;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+
 public abstract class Controller extends Renders {
 
 	private static final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
@@ -55,7 +58,7 @@ public abstract class Controller extends Renders {
 	private final Map<String, Set<Binding>> uriBinding;
 	protected Map<String, SecuredAction> securedActions;
 	/** Fully qualified method names, annotated by @MfaProtected, which require MFA before use. */
-	protected Set<String> mfaProtectedMethods = new HashSet<String>();
+	protected Set<String> mfaProtectedMethods;
 	protected EventBus eb;
 	protected String busPrefix = "";
 	private AccessLogger accessLogger;
@@ -64,8 +67,14 @@ public abstract class Controller extends Renders {
 			Map<String, SecuredAction> securedActions) {
 		super(vertx, config);
 		this.rm = rm;
-		this.uriBinding = new HashMap<>();
-		this.securedActions = securedActions;
+		this.uriBinding = new ConcurrentHashMap<>();
+		if (securedActions == null) {
+			this.securedActions = new ConcurrentHashMap<>();
+		} else {
+			this.securedActions = new ConcurrentHashMap<>(securedActions);
+		}
+		this.mfaProtectedMethods = ConcurrentHashMap.newKeySet();
+
 		if (vertx != null) {
 			this.eb = Server.getEventBus(vertx);
 		}
@@ -80,7 +89,7 @@ public abstract class Controller extends Renders {
 	{
 		super.init(vertx, config);
 		this.rm = rm;
-		this.securedActions = securedActions;
+		this.securedActions = new ConcurrentHashMap<>(securedActions);
 		this.eb = Server.getEventBus(vertx);
 		if (rm != null) {
 			loadRoutes();
@@ -89,7 +98,7 @@ public abstract class Controller extends Renders {
 		}
 	}
 
-	protected void loadRoutes() {
+	protected synchronized void loadRoutes() {
 		String vertxServicesPath = System.getProperty("vertx.services.path", "/open-ent/data/mods");
 		Path routePath = Paths.get(vertxServicesPath, config.getString("main") + File.separator + "routes" + File.separator + this.getClass().getName() + ".json");
 		if (Files.exists(routePath)) {
@@ -206,7 +215,7 @@ public abstract class Controller extends Renders {
 		try {
 			final MethodHandle mh = lookup.bind(this, method,
 					MethodType.methodType(void.class, HttpServerRequest.class));
-			return new SecurityHandler() {
+			return new SecurityHandler(vertx) {
 
 				@Override
 				public void filter(HttpServerRequest request) {
@@ -223,7 +232,7 @@ public abstract class Controller extends Renders {
 			};
 		} catch (NoSuchMethodException | IllegalAccessException e) {
 
-			return new SecurityHandler() {
+			return new SecurityHandler(vertx) {
 
 				@Override
 				public void filter(HttpServerRequest request) {

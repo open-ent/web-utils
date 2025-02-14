@@ -160,6 +160,9 @@ public abstract class Server extends AbstractVerticle {
 		} catch (IOException e) {
 			log.error("Error application not registred.", e);
 		}
+
+
+
 		final HttpServerOptions httpOptions = createHttpServerOptions();
 		vertx.createHttpServer(httpOptions)
 			.requestHandler(rm)
@@ -241,15 +244,15 @@ public abstract class Server extends AbstractVerticle {
 		return this;
 	}
 
-	protected Server clearFilters() {
-		SecurityHandler.clearFilters();
-		return this;
-	}
-
-	protected Server addFilter(Filter filter) {
-		SecurityHandler.addFilter(filter);
-		return this;
-	}
+//	protected Server clearFilters() {
+//		SecurityHandler.clearFilters();
+//		return this;
+//	}
+//
+//	protected Server addFilter(Filter filter) {
+//		SecurityHandler.addFilter(filter);
+//		return this;
+//	}
 
 	@Override
 	public void stop(Promise<Void> stopFuture) throws Exception {
