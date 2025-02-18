@@ -210,7 +210,7 @@ public abstract class Server extends AbstractVerticle {
 		});
 	}
 
-	public static String getPathPrefix(JsonObject config) {
+	public synchronized static String getPathPrefix(JsonObject config) {
 		String path = config.getString("path-prefix");
 		if (path == null) {
 			String verticle = config.getString("main");
@@ -237,7 +237,7 @@ public abstract class Server extends AbstractVerticle {
 		if (config.getString("path-prefix") == null) {
 			log.warn("add controller for a module with a 'path-prefix' not defined : " + config.getString("app-name"));
 		}
-		log.info("add controller for " + config.getString("path-prefix"));
+		log.info("add controller " + controller.getClass()  + " for " + config.getString("path-prefix"));
 		controller.init(vertx, config, rm, securedActions);
 		securedUriBinding.addAll(controller.securedUriBinding());
 		mfaProtectedBinding.addAll(controller.getMfaProtectedBindings());

@@ -31,14 +31,16 @@ import io.vertx.core.logging.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 public class JsonSchemaValidator {
 
-
 	private String address;
 	private EventBus eb;
 	private static final Logger log = LoggerFactory.getLogger(JsonSchemaValidator.class);
+	private final ConcurrentMap<String, JsonObject> schemas = new ConcurrentHashMap<>();
 
 	private JsonSchemaValidator() {}
 
@@ -61,42 +63,43 @@ public class JsonSchemaValidator {
 	public void loadJsonSchema(final String keyPrefix, Vertx vertx, JsonObject config) {
 		String JSONSCHEMA_PATH = FileResolver.absolutePath(config.getString("main"), "jsonschema");
 		final FileSystem fs = vertx.fileSystem();
-		fs.exists(JSONSCHEMA_PATH, new Handler<AsyncResult<Boolean>>() {
-			@Override
-			public void handle(AsyncResult<Boolean> event) {
-				if (event.failed() || Boolean.FALSE.equals(event.result())) {
-					log.debug("Json schema directory not found.");
-					return;
-				}
-				fs.readDir(JSONSCHEMA_PATH, new Handler<AsyncResult<List<String>>>() {
-					@Override
-					public void handle(AsyncResult<List<String>> event) {
-						if (event.succeeded()) {
-							for (final String path : event.result()) {
-								final String key = keyPrefix + path.substring(
-										path.lastIndexOf(File.separatorChar) + 1, path.lastIndexOf('.'));
-								fs.readFile(path, new Handler<AsyncResult<Buffer>>() {
-									@Override
-									public void handle(AsyncResult<Buffer> event) {
-										if (event.succeeded()) {
-											JsonObject j = new JsonObject()
-													.put("action","addSchema")
-													.put("key", key)
-													.put("jsonSchema",
-															new JsonObject(event.result().toString()));
-											eb.publish(address, j);
-										} else {
-											log.error("Error loading json schema : " + path, event.cause());
-										}
-									}
-								});
-							}
-						} else {
-							log.error("Error loading json schemas.", event.cause());
-						}
-					}
-				});
+
+		fs.exists(JSONSCHEMA_PATH, event -> {
+			if (event.failed() || Boolean.FALSE.equals(event.result())) {
+				log.debug("Json schema directory not found for " + config.getString("path-prefix"));
+				return;
 			}
+			fs.readDir(JSONSCHEMA_PATH, readDirEvent -> {
+				if (readDirEvent.succeeded()) {
+					for (final String path : readDirEvent.result()) {
+						final String key = keyPrefix + path.substring(
+								path.lastIndexOf(File.separatorChar) + 1, path.lastIndexOf('.'));
+
+						fs.readFile(path, readFileEvent -> {
+							if (readFileEvent.succeeded()) {
+								JsonObject schemaJson = new JsonObject(readFileEvent.result().toString());
+
+								// Vérifie si le schéma est déjà chargé pour éviter les doublons
+								if (!schemas.containsKey(key)) {
+									schemas.put(key, schemaJson);
+
+									// Envoie individuellement chaque schéma sans supprimer les autres
+									JsonObject addSchemaMessage = new JsonObject()
+											.put("action", "addSchema")
+											.put("key", key)
+											.put("jsonSchema", schemaJson);
+
+									eb.publish(address, addSchemaMessage);
+								}
+							} else {
+								log.error("Error loading json schema : " + path, readFileEvent.cause());
+							}
+						});
+					}
+				} else {
+					log.error("Error loading json schemas.", readDirEvent.cause());
+				}
+			});
 		});
 	}
 
@@ -108,5 +111,4 @@ public class JsonSchemaValidator {
 
 		eb.request(address, j, new DeliveryOptions().setSendTimeout(10000), handler);
 	}
-
 }
