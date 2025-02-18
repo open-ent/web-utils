@@ -22,10 +22,10 @@ jobs:
           cache: 'maven'
 
       - name: Build and test with Maven
-        run: mvn clean verify
+        run: mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml clean verify
 
       - name: Package JAR
-        run: mvn package -DskipTests=true
+        run: mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml package -DskipTests=true
 
       - name: Get version from POM
         id: get-version
