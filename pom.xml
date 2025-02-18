@@ -16,9 +16,8 @@
 
     <repositories>
         <repository>
-            <id>ode</id>
-            <name>ODE Repository</name>
-            <url>https://maven.opendigitaleducation.com/nexus/content/groups/public</url>
+            <id>github</id>
+            <url>https://maven.pkg.github.com/open-ent/openent-ng</url>
         </repository>
     </repositories>
 
